@@ -10,9 +10,13 @@ intr.evalScript()
 
 var
   configstr = intr.getGlobalValue(intr.selectUniqueSymbol("configstr")).getStr()
-  configBools: Table[string, bool]
-  configInts:  Table[string, int]
 echo configstr
+
+type Config = object
+  bools: Table[string, bool]
+  ints:  Table[string, int]
+
+var config = Config()
 
 proc isInt(s: string): bool =
   for ch in s:
@@ -23,13 +27,12 @@ var key, val: string
 for i in configstr[1 ..^ 2].split(", "):
   (key, val) = i.split(": ")
   if val.isInt:
-    configInts[key] = val.parseInt
+    config.ints[key] = val.parseInt
   else:
-    configBools[key] = val.parseBool
+    config.bools[key] = val.parseBool
 
-echo configInts["tabstop"]
-echo configBools["autoindent"]
-  
+echo config.ints["tabstop"]
+echo config.bools["autoindent"]
 
 
 intr.destroyInterpreter()
