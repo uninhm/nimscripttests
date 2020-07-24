@@ -1,4 +1,5 @@
 import compiler/[nimeval, ast], os, osproc, strutils, algorithm, tables
+import configtypes
 
 var
   nimdump = execProcess("nim dump").split("\n")
@@ -12,11 +13,8 @@ var
   configstr = intr.getGlobalValue(intr.selectUniqueSymbol("configstr")).getStr()
 echo configstr
 
-type Config = object
-  bools: Table[string, bool]
-  ints:  Table[string, int]
 
-var config = Config()
+var config: Table[string, ConfigVal]
 
 proc isInt(s: string): bool =
   for ch in s:
@@ -27,12 +25,18 @@ var key, val: string
 for i in configstr[1 ..^ 2].split(", "):
   (key, val) = i.split(": ")
   if val.isInt:
-    config.ints[key] = val.parseInt
+    config[key] = ConfigVal(kind: ConfigInt)
+    config[key].intval = val.parseInt
+  elif val == "true" or val == "false":
+    config[key] = ConfigVal(kind: ConfigBool)
+    config[key].boolval = val.parseBool
   else:
-    config.bools[key] = val.parseBool
+    config[key] = ConfigVal(kind: ConfigStr)
+    config[key].strval = val
 
-echo config.ints["tabstop"]
-echo config.bools["autoindent"]
+
+echo config["tabstop"].getInt()
+echo config["autoindent"].getbool()
 
 
 intr.destroyInterpreter()
